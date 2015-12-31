@@ -155,8 +155,5 @@ class Autoloader
 			$class_name_temp = substr($class_name_temp, 0)
 		}
 	}
-
-
-
 }
 ?>
