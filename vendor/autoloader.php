@@ -1,5 +1,5 @@
 <?php
-	namespace Plug\Autoloader;
+namespace Plug\Autoloader;
 
 /**
  * Plug-Autoloader Source: A PSR4 Implementation of a PHP Autoloader
