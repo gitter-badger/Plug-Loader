@@ -66,11 +66,23 @@ class Autoloader
 	 *	publicly accessible constructor method	 *
 	 * 
 	*/
-
 	public function __construct()
 	{
 		/* Use a Lazy - Loading strategy to set the data type of the $namespaces variable to an array */
 		$this->namespaces = array();
 	}
+
+	/**
+	 * Register a new namespace
+	 *
+	 * Make the autoloader aware of a namespace and its corresponding base directory (or directories).
+	 * You can also decide to append or prepend the base directory to the array of a namespace depending on how
+	 * you want to be accessed.
+	 * You can register more than one base directory for a namespace.
+	 *
+	 * @param string $namespace_name The name of the namespace you are trying to register.
+	 * @param string $corresponding_base_directory The file level directory associated with $namespace_name
+	 * @param boolean|null $prepend Set this parameter to true if you want the base directory you are registering to be checked first when looking for a class during autoload. Default value is false
+	*/
 }
 ?>
