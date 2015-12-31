@@ -215,6 +215,19 @@ class Autoloader
 
 	/**
 	 * Load a class from the file system
+	 *
+	 * @param string $file File URL to require/include
+	 * @return boolean
 	*/
+	protected function requireFile(string $file) : boolean
+	{
+		if (file_exists($file))
+		{
+			require $file;
+			return true;
+		}
+
+		return false;
+	}
 }
 ?>
