@@ -51,7 +51,7 @@
  * Base Class for Automatically autoloading files from directories.
  * observes the psr4 specification and builds and registers files with the spl_autoload_register function.
  *
- * @method void addNamespace(string $namespace_name, string $corresponding_base_directory, boolean $addition_mode)
+ * @method void addNamespace(string $namespace_name, string $corresponding_base_directory, boolean $preprend)
  * @method void registerAutoloader()
 */
 class Autoloader
