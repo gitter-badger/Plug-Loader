@@ -1,5 +1,5 @@
 <?php
-namespace Plug\Autoloader;
+	namespace Plug\Autoloader;
 
 /**
  * Plug-Autoloader Source: A PSR4 Implementation of a PHP Autoloader
@@ -152,8 +152,69 @@ class Autoloader
 		*/
 		while (false !== $pos = strrpos($class_name_temp, "\\"))
 		{
-			$class_name_temp = substr($class_name_temp, 0)
+			$class_name_temp = substr($class_name_temp, 0, $pos + 1); //The root namespace
+			$relative_class_name substr($class_name_temp, $pos + 1);
+
+			$mapped_file = $this->loadMappedFile($class_name_temp, $relative_class_name);
+			if ($mapped_file)
+			{
+				return $mapped_file;
+			}
+			$class_name_temp = rtrim($class_name_temp, "\\"); //removes trailing backslash for a new run of the while loop
+
+			/**
+			 * Whats going on here?
+			 * Consider the following: we are trying to autoload a class with the following qualified class name
+			 * ExampleNamespace\ExampleSubNamespace\ExampleClassName;
+			 * During the first iteration; that is, during the first run of the while loop,
+			 * the $class_name_temp variables hold ExampleNamespace and
+			 * the $relative_class_name variable holds \ExampleSubNamespace\ExampleClassName as the relative class name.
+			 * Then we call the loadMappedFile(string, string) method to load the file if it exists, if it doesn't we continue
+			 * looping until we find the file. If the file does not exist, we return false. Remember, we can't throw any exception
+			 * since its illegal for a psr4-compliant autoloader to echo or throw exceptions.
+			*/
 		}
+
+		//We couldn't find any class after searching through the mapped namespaces so we return false|null.
+		return false;
 	}
+
+	/**
+	 * A mapped file is any of the base directories located in the $this->namespaces[$namespace_name] array.
+	 *
+	 * This method as the name implies loads a class from the file system by checking the $namespace_name array
+	 * within the $this->namepaces global array to get the file level url of the class.
+	 *
+	 * @param string $namespace_name
+	 * @param string $relative_class_name
+	 * @return 
+	*/
+	protected function loadMappedFile(string $namespace_name, string $relative_class_name) : boolean
+	{
+		/**
+		 * Its possible that this method is called on an inexistent namespace, we need to check if thats not happening
+		*/
+		if (isset($this->namespaces[$namespace_name]) === false)
+		{
+			return false;
+		}
+
+		foreach ($this->namespaces[$namespace_name] as $corresponding_base_directories)
+		{
+			$file_level_url = $corresponding_base_directory . str_replace("\\", "/", $relative_class_name) . ".php";
+
+			if ($this->requireFile($file_level_url))
+			{
+				return $file_level_url;
+			}
+		}
+
+		//No mapped file exists for the supplied namespace
+		return false;
+	}
+
+	/**
+	 * Load a class from the file system
+	*/
 }
 ?>
