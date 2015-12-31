@@ -52,7 +52,7 @@
  * observes the psr4 specification and builds and registers files with the spl_autoload_register function.
  *
  * @method void addNamespace(string $namespace_name, string $corresponding_base_directory, boolean $prepend)
- * @method void registerAutoloader()
+ * @method void register()
 */
 class Autoloader
 {
@@ -82,7 +82,81 @@ class Autoloader
 	 *
 	 * @param string $namespace_name The name of the namespace you are trying to register.
 	 * @param string $corresponding_base_directory The file level directory associated with $namespace_name
-	 * @param boolean|null $prepend Set this parameter to true if you want the base directory you are registering to be checked first when looking for a class during autoload. Default value is false
+	 * @param boolean|null $prepend Set this parameter to true if you want the base directory you are registering
+	 *		  to be checked first when looking for a class during autoload. Default value is false
+	 * @return void
 	*/
+	public function addNamespace(string $namespace_name, string $corresponding_base_directory, $prepend = false)
+	{
+		/**
+		 * Normalizes the namespace name parameter by removing every trailing slash and appending a new one.
+		 * This ensures every namespace name (or namespace prefix) ends with a trailing backslash just like a normal namespace
+		*/
+		$namespace_name = trim($namespace_name, "\\") . "\\";
+
+		/**
+		 * Normalizes the file level directory name by removing every forward slash (or the directory separator used on the
+		 * guest machine using the rtrim() function. This is to ensure the directory name is correctly formatted
+		*/
+		$corresponding_base_directory = rtrim($corresponding_base_directory, DIRECTORY_SEPARATOR)."/";
+
+		/**
+		 * Checks to see if the passed namespace has already been set in the global namespaces array.
+		 * This is possible since multiple classes belonging to the same namespace may be located in different directories
+		*/
+		if (isset($this->namespaces[$namespace_name]) === false)
+		{
+			/**
+			 * This means $namespace_name does not exist yet, we create it by making it a key in the global
+			 * namespaces array and setting its value to a new array
+			*/
+			$this->namespaces[$namespace_name] = array();
+		}
+
+		/**
+		 * We need to check if the corresponding base directory should be appended or prepended to the namespace name array
+		*/
+		if ($prepend)
+		{
+			/* Since we are prepending, we need to use the array_unshift() function to add the directory to the array*/
+			array_unshift($this->namespaces[$namespace_name], $corresponding_base_directory);
+		}
+		else
+		{
+			/* We are appending, so we use the array_push function to add the directory to the array*/
+			array_push($this->namespaces[$namespace_name], $corresponding_base_directory);
+		}
+	}
+
+	/**
+	 * Instantiates the autoloader
+	 *
+	 * Call this method on an instance of the Autoloader class to intantiate it and get it ready for a new session
+	 * This method calls the spl_autoload_register() function.
+	 *
+	 * @return void
+	*/
+	public function register()
+	{
+		spl_autoload_register(array($this, "autoloadClass"));
+	}
+
+	/**
+	 * Performs actual class autoloading
+	*/
+	protected function autoloadClass($class_name)
+	{
+		$class_name_temp = $class_name;
+		/**
+		 * Loop through the $class_name variable to get every namespace name an check if the class exists in that namespace
+		*/
+		while (false !== $pos = strrpos($class_name_temp, "\\"))
+		{
+			$class_name_temp = substr($class_name_temp, 0)
+		}
+	}
+
+
+
 }
 ?>
