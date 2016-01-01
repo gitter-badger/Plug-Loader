@@ -1,9 +1,7 @@
 <?php
-	namespace Plug\Autoloader;
-
 /**
- * Plug-Autoloader Source: A PSR4 Implementation of a PHP Autoloader
- * 
+ * Plug-Autoloader Source: A PSR4 Implementation of a PHP Autoloader. 
+ *
  * This library observes the [PSR4 specification | (http://www.php-fig.org/psr/psr-4/)] to implement an autoloader.
  * + The term "class" refers to classes, interfaces, traits, and other similar structures.
  * + A fully qualified class name has the following form:
@@ -39,21 +37,26 @@
  *	<tr>
  * </table>
  *
+ * This file is part of Plug-Autoloader
+ *
  * @author Samuel Adeshina <samueladeshina73@gmail.com>
  * @version 0.0.1
  * @since 0.0.1 31st December, 2015
- * @copyright 2015 - Samuel Adeshina <samueladeshina73@gmail.com> <http://samshal.github.io>
+ * @copyright 2015 - 2016 Samuel Adeshina <samueladeshina73@gmail.com> <http://samshal.github.io>
  * @license MIT
  */
 
 /**
  * Plug\Autoloader\Autoloader class.
+ *
  * Base Class for Automatically autoloading files from directories.
  * observes the psr4 specification and builds and registers files with the spl_autoload_register function.
  *
  * @method void addNamespace(string $namespace_name, string $corresponding_base_directory, boolean $prepend)
  * @method void register()
-*/
+ */
+namespace Plug\Autoloader;
+
 class Autoloader
 {
 	/**
@@ -63,7 +66,7 @@ class Autoloader
 	private $namespaces;
 
 	/**
-	 *	publicly accessible constructor method	 *
+	 *	publicly accessible constructor method
 	 * 
 	*/
 	public function __construct()
@@ -153,7 +156,7 @@ class Autoloader
 		while (false !== $pos = strrpos($class_name_temp, "\\"))
 		{
 			$class_name_temp = substr($class_name_temp, 0, $pos + 1); //The root namespace
-			$relative_class_name substr($class_name_temp, $pos + 1);
+			$relative_class_name = substr($class_name, $pos + 1);
 
 			$mapped_file = $this->loadMappedFile($class_name_temp, $relative_class_name);
 			if ($mapped_file)
@@ -189,7 +192,7 @@ class Autoloader
 	 * @param string $relative_class_name
 	 * @return 
 	*/
-	protected function loadMappedFile(string $namespace_name, string $relative_class_name) : boolean
+	protected function loadMappedFile(string $namespace_name, string $relative_class_name) : \bool
 	{
 		/**
 		 * Its possible that this method is called on an inexistent namespace, we need to check if thats not happening
@@ -199,13 +202,17 @@ class Autoloader
 			return false;
 		}
 
-		foreach ($this->namespaces[$namespace_name] as $corresponding_base_directories)
+		foreach ($this->namespaces[$namespace_name] as $corresponding_base_directory)
 		{
-			$file_level_url = $corresponding_base_directory . str_replace("\\", "/", $relative_class_name) . ".php";
+			$file_level_url = trim(__DIR__, DIRECTORY_SEPARATOR);
+			$file_level_url .=  DIRECTORY_SEPARATOR."..".$corresponding_base_directory;
+			$file_level_url .= str_replace("\\", "/", $relative_class_name) . ".php";
+
+			$file_level_url = str_replace("/", DIRECTORY_SEPARATOR, $file_level_url);
 
 			if ($this->requireFile($file_level_url))
 			{
-				return $file_level_url;
+				return true;
 			}
 		}
 
@@ -219,7 +226,7 @@ class Autoloader
 	 * @param string $file File URL to require/include
 	 * @return boolean
 	*/
-	protected function requireFile(string $file) : boolean
+	protected function requireFile(string $file) : \bool
 	{
 		if (file_exists($file))
 		{
