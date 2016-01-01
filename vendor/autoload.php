@@ -15,6 +15,8 @@
 	/**
 	 * We need to specify the location of the configuration file.
 	 * It can be an xml or a json file and it can be located anywhere.
+	 * @see AutoloadeRegister::ParseConfigFile() For a detailed explanation of this
+	 *
 	 * It is advised to set this location to the document root, that is the root level folder
 	 *
 	 * The default is the root level folder, but... feel free to change it to any other location as

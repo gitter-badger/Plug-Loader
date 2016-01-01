@@ -151,7 +151,7 @@ class Autoloader
 	{
 		$class_name_temp = $class_name;
 		/**
-		 * Loop through the $class_name variable to get every namespace name an check if the class exists in that namespace
+		 * Loop through the $class_name variable to get every namespace name and check if the class exists in that namespace
 		*/
 		while (false !== $pos = strrpos($class_name_temp, "\\"))
 		{
