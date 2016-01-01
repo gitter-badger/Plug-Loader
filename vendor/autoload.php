@@ -20,13 +20,17 @@
 	 * The default is the root level folder, but... feel free to change it to any other location as
 	 * you see fit.
 	 */
-	if (file_exists($_SERVER["DOCUMENT_ROOT"]. DIRECTORY_SEPARATOR. "autoload.json"))
+	$base_directory_minus_file_name = $_SERVER["DOCUMENT_ROOT"]. DIRECTORY_SEPARATOR;
+	$config_file_name_minus_extension = "autoload";
+
+
+	if (file_exists($base_directory_minus_file_name. $config_file_name_minus_extension.".json"))
 	{
-		$configuration_file = $_SERVER["DOCUMENT_ROOT"]. DIRECTORY_SEPARATOR. "autoload.json";
+		$configuration_file = $base_directory_minus_file_name. $config_file_name_minus_extension.".json";
 	}
-	else if (file_exists($_SERVER["DOCUMENT_ROOT"]. DIRECTORY_SEPARATOR. "autoload.xml"))
+	else if (file_exists($base_directory_minus_file_name. $config_file_name_minus_extension.".xml"))
 	{
-		$configuration_file = $_SERVER["DOCUMENT_ROOT"]. DIRECTORY_SEPARATOR. "autoload.xml";
+		$configuration_file = $base_directory_minus_file_name. $config_file_name_minus_extension.".xml";
 	}
 	else
 	{
