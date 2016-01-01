@@ -1,0 +1,4 @@
+<Namespaces>
+	<Namespace name="Example\\" directory="/src"/>
+	<Namespace name="Example\\Sound" directory="/src/more"/>
+</Namespaces>

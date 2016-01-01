@@ -169,12 +169,59 @@ class AutoloaderRegister
 		}
 	}
 
-
+	/**
+	 * Parse an XML (configuration) file.
+	 *
+	 * The AutoloaderRegister::XmlConfigParser() method below accepts the URI
+	 * of an xml configuration file as a string parameter and then parses this
+	 * xml config file using the SimpleXMLElement() function.
+	 * A properly formatted xml configuration file must look like the following:
+	 *  `<Namespaces>
+	 *		<Namespace name="Namespace\\SubNamespace\\And\\So\\On" directory="/path/to/namespace"/>
+	 * 		<Namespace name="AnotherNamespace\\AnotherSubNamespace\\And\\So\\On" directory="/path/to/another/namespace"/>
+	 *	 </Namespaces>`
+	 *
+	 * @param string $configuration_file XML Configuration File
+	 * @access private
+	 * @return boolean
+	*/
 	private function XmlConfigParser(string $configuration_file) : \bool
 	{
-		return true;
+		if (file_exists($configuration_file))
+		{
+			$configuration = file_get_contents($configuration_file);
+			$xml_parsed_configuration = new \SimpleXMLElement($configuration);
+			foreach ($xml_parsed_configuration->Namespace as $xml_namespace)
+			{
+				$this->addNamespace($xml_namespace->attributes()->name, $xml_namespace->attributes()->directory);
+			}
+			return true;
+		}
+
+		return false;
 	}
 
+	/**
+	 * Parse a JSON (configuration) file.
+	 *
+	 * This method is similar to the XmlConfigParser() method. @see AutoloaderRegister::XmlConfigParser()
+	 *
+	 * The AutoloaderRegister::JsonConfigParser() method below accepts the URI
+	 * of a json configuration file as a string parameter and then parses this
+	 * json config file using the json_decode() function.
+	 * A properly formatted json configuration file must look like the following:
+	 * `{
+	 *		"Namespaces" :
+	 *		{
+	 *			"Namespace\\SubNamespace\\And\\So\\On" : "/path/to/namespace",
+	 *			"AnotherNamespace\\AnotherSubNamespace\\And\\So\\On" : "/path/to/another/namespace"
+	 *		}
+	 *	}`
+	 *
+	 * @param string $configuration_file JSON Configuration File
+	 * @access private
+	 * @return boolean
+	*/
 	private function JsonConfigParser(string $configuration_file) : \bool
 	{
 		if (file_exists($configuration_file))
