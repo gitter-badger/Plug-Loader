@@ -1,0 +1,13 @@
+<?php
+	$file = file_get_contents("autoloader.json");
+
+	$content = json_decode($file);
+
+	//print_r($content->namespaces);
+
+	foreach ($content->namespaces as $key=>$namespace)
+	{
+		echo $key;
+		//print_r($namespace);
+	}
+?>
