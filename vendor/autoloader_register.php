@@ -289,6 +289,13 @@ class AutoloaderRegister
 		return false;
 	}
 
+	/**
+	 * Base Method for moving through a directory-tree to get every sub-directories withing all directories
+	 *
+	 * @param string $namespace_name
+	 * @param string $namespace_directory
+	 * @return void
+	*/
 	private function penetrateAllDirectories(string $namespace_name, string $namespace_directory)
 	{
 		$this->namespace_root_for_automatic_autoloading = ucfirst(trim($namespace_name, "\\") . "\\");
@@ -299,6 +306,13 @@ class AutoloaderRegister
 		$this->penetrateAllSubDirectories($this->document_root_for_automatic_autoloading);
 	}
 
+	/**
+	 * Recursive method called by the penetrateAllDirectores() method to load the sub-directories within a directory
+	 * @see AutoloaderRegister::penetrateAllDirectories()
+	 *
+	 * @param string $namespace_directory
+	 * @return void
+	*/
 	private function penetrateAllSubDirectories(string $namespace_directory)
 	{
 		$namespace_directory = strtolower(str_replace("/", DIRECTORY_SEPARATOR, $namespace_directory));
@@ -326,6 +340,13 @@ class AutoloaderRegister
 			}
 		}
 	}
+
+	/**
+	 * Register a new namespace by calling the addNamespace method.
+	 *
+	 * @param string $directory
+	 * @return void
+	*/
 
 	private function registerNewNamespace(string $directory)
 	{
