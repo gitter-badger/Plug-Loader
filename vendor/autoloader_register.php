@@ -35,11 +35,17 @@ class AutoloaderRegister
 	private $config_file_name;
 
 	/**
+	 * @var string $document_root @see $_SERVER["DOCUMENT_ROOT"]
+	 * @access private
+	*/
+	private $document_root;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $config_file_name
 	*/
-	public function __construct(string $config_file_name)
+	public function __construct(string $config_file_name, string $document_root = null)
 	{
 		/**
 		  * Uses a Lazy-Loading strategy to set the @autoloader variable to an instance of the Autoloader object
@@ -49,6 +55,8 @@ class AutoloaderRegister
 
 
 		$this->config_file_name = $config_file_name;
+
+		$this->document_root = trim($document_root, "\\");
 
 		/**
 		 * If the configuration type is successfully set and the configuration file is parsed successfully,
@@ -243,9 +251,7 @@ class AutoloaderRegister
 
 			if
 			(
-				/*count($json_parsed_configuration->Namespaces) === 1 //Does the config file contain only one namespace?
-				&&*/
-				isset(((array)$json_parsed_configuration->Namespaces)["ROOT"]) === true //And is there a namespace called "ROOT"?
+				isset(((array)$json_parsed_configuration->Namespaces)["ROOT"]) === true //Is there a namespace called "ROOT"?
 			)
 			{
 				//If all conditions are true, delegate the operation of adding namespaces to another method
@@ -253,7 +259,7 @@ class AutoloaderRegister
 
 				foreach ($namespace_root as $namespace_root_name=>$namespace_root_directory)
 				{
-					$this->penetrateAllDirectories($namespace_root_name, $namespace_root_directory);
+					$this->penetrateAllDirectories($namespace_root_directory);
 				}
 
 			}
@@ -271,11 +277,44 @@ class AutoloaderRegister
 		return false;
 	}
 
-	private function penetrateAllDirectories($namespace_name, $namespace_directory)
+	private function penetrateAllDirectories(string $namespace_directory)
 	{
-		echo $namespace_directory;
-		$directories = glob($namespace_directory.DIRECTORY_SEPARATOR."*", GLOB_ONLYDIR);
-		print_r($directories);
+		if (false !== isset($this->document_root) && $this->document_root !== null)
+		{
+			$namespace_directory = str_replace("/", DIRECTORY_SEPARATOR, $namespace_directory);
+			$directories_root_uri = $this->document_root.$namespace_directory;
+
+			$directories = glob($directories_root_uri.DIRECTORY_SEPARATOR."*", GLOB_ONLYDIR);
+
+			foreach ($directories as $directory)
+			{
+				echo $directory."<br/>";
+				$this->getAllSubDirectoriesRecursively($directory);
+			}
+			echo "<hr/>";
+		}
+	}
+
+	private function getAllSubDirectoriesRecursively(string $directory_full_path)
+	{
+		$zero_directory_count = false;
+		$directory_to_penetrate = $directory_full_path;
+		while ($zero_directory_count !== true)
+		{
+			$subdirectories = glob($directory_to_penetrate.DIRECTORY_SEPARATOR."*", GLOB_ONLYDIR);
+			echo count($subdirectories);
+			if (0 === count($subdirectories)) //Hope $directory_to_penetrate is not empty :)
+			{
+				for ($current_count = 0; $current_count < count($subdirectories); $current_count++)
+				{
+					$this->penetrateAllDirectories($subdirectories[$current_count]);
+				}
+			}
+			else
+			{
+				$zero_directory_count = true;
+			}
+		}
 	}
 }
 ?>
