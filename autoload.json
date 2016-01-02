@@ -3,7 +3,7 @@
 	{
 		"ROOT" : 
 		{
-			"Examples\\":"/src"
+			"Example\\":"/src/sound"
 		}
 	}
 }

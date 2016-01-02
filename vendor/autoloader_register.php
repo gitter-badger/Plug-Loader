@@ -293,6 +293,8 @@ class AutoloaderRegister
 	{
 		$this->namespace_root_for_automatic_autoloading = ucfirst(trim($namespace_name, "\\") . "\\");
 		$this->document_root_for_automatic_autoloading = str_replace("/",DIRECTORY_SEPARATOR, $namespace_directory);
+
+		$this->addNamespace($this->namespace_root_for_automatic_autoloading, $this->document_root_for_automatic_autoloading);
 		
 		$this->penetrateAllSubDirectories($this->document_root_for_automatic_autoloading);
 	}
@@ -333,9 +335,11 @@ class AutoloaderRegister
 		{
 			$namespaces_temporary_array[$count] = ucfirst($namespaces_temporary_array[$count]);
 		}
-		$namespace = implode("\\", $namespaces_temporary_array);
+		$namespace = $this->namespace_root_for_automatic_autoloading.implode("\\", $namespaces_temporary_array);
 
-		echo $namespace."<br/>";
+		$directory = $this->document_root_for_automatic_autoloading . $directory;
+
+		$this->addNamespace($namespace, $directory);
 
 	}
 }
