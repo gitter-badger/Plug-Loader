@@ -218,6 +218,18 @@ class AutoloaderRegister
 	 *		}
 	 *	}`
 	 *
+	 * or like this:
+	 * `{
+	 *		"Namespaces" :
+	 *		{
+	 *			"ROOT" : 
+	 *			{
+	 *				Namespace\\SubNamespace\\And\\So\\On", "/path/to/namespace"
+	 *			}
+	 *			"AnotherNamespace\\AnotherSubNamespace\\And\\So\\On" : "/path/to/another/namespace"
+	 *		}
+	 *	}`
+	 *
 	 * @param string $configuration_file JSON Configuration File
 	 * @access private
 	 * @return boolean
@@ -229,14 +241,41 @@ class AutoloaderRegister
 			$configuration = file_get_contents($configuration_file);
 			$json_parsed_configuration = json_decode($configuration);
 
+			if
+			(
+				/*count($json_parsed_configuration->Namespaces) === 1 //Does the config file contain only one namespace?
+				&&*/
+				isset(((array)$json_parsed_configuration->Namespaces)["ROOT"]) === true //And is there a namespace called "ROOT"?
+			)
+			{
+				//If all conditions are true, delegate the operation of adding namespaces to another method
+				$namespace_root = ((array)$json_parsed_configuration->Namespaces)["ROOT"];
+
+				foreach ($namespace_root as $namespace_root_name=>$namespace_root_directory)
+				{
+					$this->penetrateAllDirectories($namespace_root_name, $namespace_root_directory);
+				}
+
+			}
 			foreach ($json_parsed_configuration->Namespaces as $json_namespace_name=>$json_namespace_directory)
 			{
-				$this->addNamespace($json_namespace_name, $json_namespace_directory);
+				if ($json_namespace_name !== "ROOT")
+				{
+					$this->addNamespace($json_namespace_name, $json_namespace_directory);
+				}
+				
 			}
 			return true;
 		}
 
 		return false;
+	}
+
+	private function penetrateAllDirectories($namespace_name, $namespace_directory)
+	{
+		echo $namespace_directory;
+		$directories = glob($namespace_directory.DIRECTORY_SEPARATOR."*", GLOB_ONLYDIR);
+		print_r($directories);
 	}
 }
 ?>
