@@ -41,6 +41,18 @@ class AutoloaderRegister
 	private $document_root;
 
 	/**
+	 * @var string $document_root_for_automatic_autoloading @see AutoloaderRegister::penetrateAllDirectories()
+	 * @access private
+	*/
+	private $document_root_for_automatic_autoloading;
+
+	/**
+	 * @var string $namespace_root_for_automatic_autoloading @see AutoloaderRegister::penetrateAllDirectories()
+	 * @access private
+	*/
+	private $namespace_root_for_automatic_autoloading;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $config_file_name
@@ -259,7 +271,7 @@ class AutoloaderRegister
 
 				foreach ($namespace_root as $namespace_root_name=>$namespace_root_directory)
 				{
-					$this->penetrateAllDirectories($namespace_root_directory);
+					$this->penetrateAllDirectories($namespace_root_name, $namespace_root_directory);
 				}
 
 			}
@@ -277,44 +289,54 @@ class AutoloaderRegister
 		return false;
 	}
 
-	private function penetrateAllDirectories(string $namespace_directory)
+	private function penetrateAllDirectories(string $namespace_name, string $namespace_directory)
 	{
+		$this->namespace_root_for_automatic_autoloading = ucfirst(trim($namespace_name, "\\") . "\\");
+		$this->document_root_for_automatic_autoloading = str_replace("/",DIRECTORY_SEPARATOR, $namespace_directory);
+		
+		$this->penetrateAllSubDirectories($this->document_root_for_automatic_autoloading);
+	}
+
+	private function penetrateAllSubDirectories(string $namespace_directory)
+	{
+		$namespace_directory = strtolower(str_replace("/", DIRECTORY_SEPARATOR, $namespace_directory));
+
+		$base_directory_path = substr($namespace_directory, strlen($this->document_root_for_automatic_autoloading));
+
+		if (strcmp($base_directory_path, "") !== 0)
+		{
+			$this->registerNewNamespace($base_directory_path);
+		}
+
 		if (false !== isset($this->document_root) && $this->document_root !== null)
 		{
 			$namespace_directory = str_replace("/", DIRECTORY_SEPARATOR, $namespace_directory);
 			$directories_root_uri = $this->document_root.$namespace_directory;
-
 			$directories = glob($directories_root_uri.DIRECTORY_SEPARATOR."*", GLOB_ONLYDIR);
 
-			foreach ($directories as $directory)
+			if (true !== empty($directories))
 			{
-				echo $directory."<br/>";
-				$this->getAllSubDirectoriesRecursively($directory);
+				foreach ($directories as $directory)
+				{
+					$directory_full_path = substr($directory, strlen($this->document_root));
+					$this->penetrateAllSubDirectories($directory_full_path, $directory_full_path);
+				}
 			}
-			echo "<hr/>";
 		}
 	}
 
-	private function getAllSubDirectoriesRecursively(string $directory_full_path)
+	private function registerNewNamespace(string $directory)
 	{
-		$zero_directory_count = false;
-		$directory_to_penetrate = $directory_full_path;
-		while ($zero_directory_count !== true)
+		$namespace = trim($directory, "\\") . "\\";
+		$namespaces_temporary_array = explode("\\", $namespace);
+		for ($count = 0; $count < count($namespaces_temporary_array); $count++)
 		{
-			$subdirectories = glob($directory_to_penetrate.DIRECTORY_SEPARATOR."*", GLOB_ONLYDIR);
-			echo count($subdirectories);
-			if (0 === count($subdirectories)) //Hope $directory_to_penetrate is not empty :)
-			{
-				for ($current_count = 0; $current_count < count($subdirectories); $current_count++)
-				{
-					$this->penetrateAllDirectories($subdirectories[$current_count]);
-				}
-			}
-			else
-			{
-				$zero_directory_count = true;
-			}
+			$namespaces_temporary_array[$count] = ucfirst($namespaces_temporary_array[$count]);
 		}
+		$namespace = implode("\\", $namespaces_temporary_array);
+
+		echo $namespace."<br/>";
+
 	}
 }
 ?>
