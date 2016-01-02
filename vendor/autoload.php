@@ -39,5 +39,5 @@
 		return;
 	}
 
-	new Plug\Autoloader\AutoloaderRegister($configuration_file);
+	new Plug\Autoloader\AutoloaderRegister($configuration_file, $base_directory_minus_file_name);
  ?>

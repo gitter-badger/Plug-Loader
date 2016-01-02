@@ -35,11 +35,29 @@ class AutoloaderRegister
 	private $config_file_name;
 
 	/**
+	 * @var string $document_root @see $_SERVER["DOCUMENT_ROOT"]
+	 * @access private
+	*/
+	private $document_root;
+
+	/**
+	 * @var string $document_root_for_automatic_autoloading @see AutoloaderRegister::penetrateAllDirectories()
+	 * @access private
+	*/
+	private $document_root_for_automatic_autoloading;
+
+	/**
+	 * @var string $namespace_root_for_automatic_autoloading @see AutoloaderRegister::penetrateAllDirectories()
+	 * @access private
+	*/
+	private $namespace_root_for_automatic_autoloading;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $config_file_name
 	*/
-	public function __construct(string $config_file_name)
+	public function __construct(string $config_file_name, string $document_root = null)
 	{
 		/**
 		  * Uses a Lazy-Loading strategy to set the @autoloader variable to an instance of the Autoloader object
@@ -49,6 +67,8 @@ class AutoloaderRegister
 
 
 		$this->config_file_name = $config_file_name;
+
+		$this->document_root = trim($document_root, "\\");
 
 		/**
 		 * If the configuration type is successfully set and the configuration file is parsed successfully,
@@ -169,12 +189,71 @@ class AutoloaderRegister
 		}
 	}
 
-
+	/**
+	 * Parse an XML (configuration) file.
+	 *
+	 * The AutoloaderRegister::XmlConfigParser() method below accepts the URI
+	 * of an xml configuration file as a string parameter and then parses this
+	 * xml config file using the SimpleXMLElement() function.
+	 * A properly formatted xml configuration file must look like the following:
+	 *  `<Namespaces>
+	 *		<Namespace name="Namespace\\SubNamespace\\And\\So\\On" directory="/path/to/namespace"/>
+	 * 		<Namespace name="AnotherNamespace\\AnotherSubNamespace\\And\\So\\On" directory="/path/to/another/namespace"/>
+	 *	 </Namespaces>`
+	 *
+	 * @param string $configuration_file XML Configuration File
+	 * @access private
+	 * @return boolean
+	*/
 	private function XmlConfigParser(string $configuration_file) : \bool
 	{
-		return true;
+		if (file_exists($configuration_file))
+		{
+			$configuration = file_get_contents($configuration_file);
+			$xml_parsed_configuration = new \SimpleXMLElement($configuration);
+			foreach ($xml_parsed_configuration->Namespace as $xml_namespace)
+			{
+				$this->addNamespace($xml_namespace->attributes()->name, $xml_namespace->attributes()->directory);
+			}
+			return true;
+		}
+
+		return false;
 	}
 
+	/**
+	 * Parse a JSON (configuration) file.
+	 *
+	 * This method is similar to the XmlConfigParser() method. @see AutoloaderRegister::XmlConfigParser()
+	 *
+	 * The AutoloaderRegister::JsonConfigParser() method below accepts the URI
+	 * of a json configuration file as a string parameter and then parses this
+	 * json config file using the json_decode() function.
+	 * A properly formatted json configuration file must look like the following:
+	 * `{
+	 *		"Namespaces" :
+	 *		{
+	 *			"Namespace\\SubNamespace\\And\\So\\On" : "/path/to/namespace",
+	 *			"AnotherNamespace\\AnotherSubNamespace\\And\\So\\On" : "/path/to/another/namespace"
+	 *		}
+	 *	}`
+	 *
+	 * or like this:
+	 * `{
+	 *		"Namespaces" :
+	 *		{
+	 *			"ROOT" : 
+	 *			{
+	 *				Namespace\\SubNamespace\\And\\So\\On", "/path/to/namespace"
+	 *			}
+	 *			"AnotherNamespace\\AnotherSubNamespace\\And\\So\\On" : "/path/to/another/namespace"
+	 *		}
+	 *	}`
+	 *
+	 * @param string $configuration_file JSON Configuration File
+	 * @access private
+	 * @return boolean
+	*/
 	private function JsonConfigParser(string $configuration_file) : \bool
 	{
 		if (file_exists($configuration_file))
@@ -182,14 +261,107 @@ class AutoloaderRegister
 			$configuration = file_get_contents($configuration_file);
 			$json_parsed_configuration = json_decode($configuration);
 
+			if
+			(
+				isset(((array)$json_parsed_configuration->Namespaces)["ROOT"]) === true //Is there a namespace called "ROOT"?
+			)
+			{
+				//If all conditions are true, delegate the operation of adding namespaces to another method
+				$namespace_root = ((array)$json_parsed_configuration->Namespaces)["ROOT"];
+
+				foreach ($namespace_root as $namespace_root_name=>$namespace_root_directory)
+				{
+					$this->penetrateAllDirectories($namespace_root_name, $namespace_root_directory);
+				}
+
+			}
 			foreach ($json_parsed_configuration->Namespaces as $json_namespace_name=>$json_namespace_directory)
 			{
-				$this->addNamespace($json_namespace_name, $json_namespace_directory);
+				if ($json_namespace_name !== "ROOT")
+				{
+					$this->addNamespace($json_namespace_name, $json_namespace_directory);
+				}
+				
 			}
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Base Method for moving through a directory-tree to get every sub-directories withing all directories
+	 *
+	 * @param string $namespace_name
+	 * @param string $namespace_directory
+	 * @return void
+	*/
+	private function penetrateAllDirectories(string $namespace_name, string $namespace_directory)
+	{
+		$this->namespace_root_for_automatic_autoloading = ucfirst(trim($namespace_name, "\\") . "\\");
+		$this->document_root_for_automatic_autoloading = str_replace("/",DIRECTORY_SEPARATOR, $namespace_directory);
+
+		$this->addNamespace($this->namespace_root_for_automatic_autoloading, $this->document_root_for_automatic_autoloading);
+		
+		$this->penetrateAllSubDirectories($this->document_root_for_automatic_autoloading);
+	}
+
+	/**
+	 * Recursive method called by the penetrateAllDirectores() method to load the sub-directories within a directory
+	 * @see AutoloaderRegister::penetrateAllDirectories()
+	 *
+	 * @param string $namespace_directory
+	 * @return void
+	*/
+	private function penetrateAllSubDirectories(string $namespace_directory)
+	{
+		$namespace_directory = strtolower(str_replace("/", DIRECTORY_SEPARATOR, $namespace_directory));
+
+		$base_directory_path = substr($namespace_directory, strlen($this->document_root_for_automatic_autoloading));
+
+		if (strcmp($base_directory_path, "") !== 0)
+		{
+			$this->registerNewNamespace($base_directory_path);
+		}
+
+		if (false !== isset($this->document_root) && $this->document_root !== null)
+		{
+			$namespace_directory = str_replace("/", DIRECTORY_SEPARATOR, $namespace_directory);
+			$directories_root_uri = $this->document_root.$namespace_directory;
+			$directories = glob($directories_root_uri.DIRECTORY_SEPARATOR."*", GLOB_ONLYDIR);
+
+			if (true !== empty($directories))
+			{
+				foreach ($directories as $directory)
+				{
+					$directory_full_path = substr($directory, strlen($this->document_root));
+					$this->penetrateAllSubDirectories($directory_full_path, $directory_full_path);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Register a new namespace by calling the addNamespace method.
+	 *
+	 * @param string $directory
+	 * @return void
+	*/
+
+	private function registerNewNamespace(string $directory)
+	{
+		$namespace = trim($directory, "\\") . "\\";
+		$namespaces_temporary_array = explode("\\", $namespace);
+		for ($count = 0; $count < count($namespaces_temporary_array); $count++)
+		{
+			$namespaces_temporary_array[$count] = ucfirst($namespaces_temporary_array[$count]);
+		}
+		$namespace = $this->namespace_root_for_automatic_autoloading.implode("\\", $namespaces_temporary_array);
+
+		$directory = $this->document_root_for_automatic_autoloading . $directory;
+
+		$this->addNamespace($namespace, $directory);
+
 	}
 }
 ?>

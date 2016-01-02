@@ -1,6 +1,9 @@
 {
 	"Namespaces":
 	{
-		
+		"ROOT" : 
+		{
+			"Example\\":"/src/sound"
+		}
 	}
 }
