@@ -1,5 +1,7 @@
 #About
- > A PSR4 Implementation of an autoloader for the ~Plug Microframework.
+
+[![Join the chat at https://gitter.im/Samshal/Plug-Loader](https://badges.gitter.im/Samshal/Plug-Loader.svg)](https://gitter.im/Samshal/Plug-Loader?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+A PSR4 Implementation of an autoloader for the ~Plug Microframework.
 
 #How-TO
 > The configuration file for this autoloader can be __supplied in two different formats__:
