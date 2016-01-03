@@ -1,4 +1,6 @@
 #About
+
+[![Join the chat at https://gitter.im/Karabow-Inc/Plug-Loader](https://badges.gitter.im/Karabow-Inc/Plug-Loader.svg)](https://gitter.im/Karabow-Inc/Plug-Loader?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
  > A PSR4 Implementation of an autoloader for the ~Plug Microframework.
 
 #How-TO
