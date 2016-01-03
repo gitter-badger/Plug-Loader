@@ -290,7 +290,7 @@ class AutoloaderRegister
 	}
 
 	/**
-	 * Base Method for moving through a directory-tree to get every sub-directories withing all directories
+	 * Base Method for moving through a directory-tree to get every sub-directories within all directories
 	 *
 	 * @param string $namespace_name
 	 * @param string $namespace_directory
